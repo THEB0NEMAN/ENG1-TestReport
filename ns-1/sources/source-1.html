@@ -1,0 +1,307 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=windows-1252"> 
+  <title>Coverage Report > Grid</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.badlogic.UniSim2.core</a>
+</div>
+
+<h1>Coverage Summary for Class: Grid (com.badlogic.UniSim2.core)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">Grid</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    91.7%
+  </span>
+  <span class="absValue">
+    (11/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    92.6%
+  </span>
+  <span class="absValue">
+    (50/54)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.badlogic.UniSim2.core;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.List;
+&nbsp;
+&nbsp;import com.badlogic.UniSim2.core.buildings.Area;
+&nbsp;import com.badlogic.UniSim2.core.buildings.Building;
+&nbsp;import com.badlogic.UniSim2.core.buildings.BuildingPlacementException;
+&nbsp;import com.badlogic.UniSim2.core.buildings.BuildingRemovalException;
+&nbsp;import com.badlogic.UniSim2.core.buildings.BuildingType;
+&nbsp;import com.badlogic.UniSim2.core.buildings.Path;
+&nbsp;
+&nbsp;/**
+&nbsp; * Represents the grid on which buildings and paths are placed.
+&nbsp; */
+&nbsp;public class Grid {
+&nbsp;
+&nbsp;    private final int rows;
+&nbsp;    private final int cols;
+&nbsp;    private final List&lt;Building&gt; buildings;
+&nbsp;    private final List&lt;Path&gt; paths;
+&nbsp;
+<b class="fc">&nbsp;    public Grid(int rows, int cols) {</b>
+<b class="fc">&nbsp;        this.rows = rows;</b>
+<b class="fc">&nbsp;        this.cols = cols;</b>
+<b class="fc">&nbsp;        this.buildings = new ArrayList&lt;&gt;();</b>
+<b class="fc">&nbsp;        this.paths = new ArrayList&lt;&gt;();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Places a building on the grid.
+&nbsp;     *
+&nbsp;     * @param type The type of building to place.
+&nbsp;     * @param row The row position to place the building.
+&nbsp;     * @param col The column position to place the building.
+&nbsp;     * @throws BuildingPlacementException If the building cannot be placed.
+&nbsp;     */
+&nbsp;    public void placeBuilding(BuildingType type, int row, int col) throws BuildingPlacementException {
+<b class="fc">&nbsp;        if (!getCanPlace(type, row, col)) {</b>
+<b class="fc">&nbsp;            throw new BuildingPlacementException(&quot;Cannot place building at row &quot; + row + &quot; and col &quot; + col);</b>
+&nbsp;        }
+<b class="fc">&nbsp;        Building building = type.create(row, col);</b>
+<b class="fc">&nbsp;        buildings.add(building);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Moves a building to a new position on the grid.
+&nbsp;     *
+&nbsp;     * @param building The building to move.
+&nbsp;     * @param row The new row position.
+&nbsp;     * @param col The new column position.
+&nbsp;     * @throws BuildingPlacementException If the building cannot be moved.
+&nbsp;     */
+&nbsp;    public void moveBuilding(Building building, int row, int col) throws BuildingPlacementException {
+<b class="fc">&nbsp;        if (!getCanPlace(building.getType(), row, col)) {</b>
+<b class="fc">&nbsp;            throw new BuildingPlacementException(&quot;Cannot place building at row &quot; + row + &quot; and col &quot; + col);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        placeBuilding(building.getType(), row, col);</b>
+<b class="fc">&nbsp;        buildings.remove(building);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Removes a building from the grid.
+&nbsp;     *
+&nbsp;     * @param row The row position of the building to remove.
+&nbsp;     * @param col The column position of the building to remove.
+&nbsp;     * @return The removed building.
+&nbsp;     * @throws BuildingRemovalException If the building cannot be removed.
+&nbsp;     */
+&nbsp;    public Building removeBuilding(int row, int col) throws BuildingRemovalException {
+<b class="fc">&nbsp;        for (int i = 0; i &lt; buildings.size(); i++) {</b>
+<b class="fc">&nbsp;            Building building = buildings.get(i);</b>
+<b class="fc">&nbsp;            if (isBuildingAt(building, row, col)) {</b>
+<b class="fc">&nbsp;                buildings.remove(i);</b>
+<b class="fc">&nbsp;                return building;</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        throw new BuildingRemovalException(&quot;There is no building at row &quot; + row + &quot; col &quot; + col);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Returns the count of buildings of a specific type.
+&nbsp;     *
+&nbsp;     * @param type The type of building.
+&nbsp;     * @return The count of buildings of the specified type.
+&nbsp;     */
+&nbsp;    public int getBuildingCount(BuildingType type) {
+<b class="fc">&nbsp;        int count = 0;</b>
+<b class="fc">&nbsp;        for (Building building : buildings) {</b>
+<b class="fc">&nbsp;            if (building.getType().equals(type)) {</b>
+<b class="fc">&nbsp;                count++;</b>
+&nbsp;            }
+<b class="fc">&nbsp;        }</b>
+<b class="fc">&nbsp;        return count;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Places a path on the grid.
+&nbsp;     *
+&nbsp;     * @param row The row position of the path.
+&nbsp;     * @param col The column position of the path.
+&nbsp;     * @param width The width of the path.
+&nbsp;     * @param height The height of the path.
+&nbsp;     */
+&nbsp;    public void placePath(int row, int col, int width, int height) {
+<b class="fc">&nbsp;        paths.add(new Path(width, height, row, col));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Checks if a building can be placed at the specified position.
+&nbsp;     *
+&nbsp;     * @param type The type of building.
+&nbsp;     * @param row The row position.
+&nbsp;     * @param col The column position.
+&nbsp;     * @return True if the building can be placed, false otherwise.
+&nbsp;     */
+&nbsp;    public boolean getCanPlace(BuildingType type, int row, int col) {
+<b class="fc">&nbsp;        if (row - type.getHeight() &lt; 0</b>
+&nbsp;                || row &gt; rows
+&nbsp;                || col &lt; 0
+<b class="fc">&nbsp;                || col + type.getWidth() &gt; cols) {</b>
+<b class="fc">&nbsp;            return false;</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        for (Building building : buildings) {</b>
+<b class="fc">&nbsp;            if (building.overlaps(type, row, col)) {</b>
+<b class="fc">&nbsp;                return false;</b>
+&nbsp;            }
+<b class="fc">&nbsp;        }</b>
+&nbsp;
+<b class="fc">&nbsp;        for (Path path : paths) {</b>
+<b class="fc">&nbsp;            if (path.overlaps(type, row, col)) {</b>
+<b class="nc">&nbsp;                return false;</b>
+&nbsp;            }
+<b class="fc">&nbsp;        }</b>
+&nbsp;
+<b class="fc">&nbsp;        return true;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Checks if two buildings are within a specified radius of each other.
+&nbsp;     *
+&nbsp;     * @param a The first building.
+&nbsp;     * @param b The second building.
+&nbsp;     * @param radius The radius to check within.
+&nbsp;     * @return True if the buildings are within the radius, false otherwise.
+&nbsp;     */
+&nbsp;    public boolean getBuildingsAreWithinRadius(Building a, Building b, int radius) {
+<b class="nc">&nbsp;        Building area = new Area(a.getWidth() + (2 * radius), a.getHeight() + (2 * radius), a.getRow() + radius, a.getCol() - radius);</b>
+<b class="nc">&nbsp;        return area.overlaps(b.getType(), b.getRow(), b.getCol());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Checks if a building is at the specified position.
+&nbsp;     *
+&nbsp;     * @param building The building to check.
+&nbsp;     * @param row The row position.
+&nbsp;     * @param col The column position.
+&nbsp;     * @return True if the building is at the position, false otherwise.
+&nbsp;     */
+&nbsp;    private boolean isBuildingAt(Building building, int row, int col) {
+<b class="fc">&nbsp;        boolean inRow = building.getRow() &gt;= row &amp;&amp; building.getRow() - building.getHeight() &lt;= row;</b>
+<b class="fc">&nbsp;        boolean inCol = building.getCol() &lt;= col &amp;&amp; building.getCol() + building.getWidth() &gt;= col;</b>
+<b class="fc">&nbsp;        return inRow &amp;&amp; inCol;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public List&lt;Building&gt; getPlacedBuildings() {
+<b class="fc">&nbsp;        return buildings;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Checks if there is a building at the specified position.
+&nbsp;     *
+&nbsp;     * @param row The row position.
+&nbsp;     * @param col The column position.
+&nbsp;     * @return True if there is a building at the position, false otherwise.
+&nbsp;     */
+&nbsp;    public boolean getIsBuildingAt(int row, int col) {
+<b class="fc">&nbsp;        for (Building building : buildings) {</b>
+<b class="fc">&nbsp;            if (isBuildingAt(building, row, col)) {</b>
+<b class="fc">&nbsp;                return true;</b>
+&nbsp;            }
+<b class="fc">&nbsp;        }</b>
+<b class="fc">&nbsp;        return false;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Returns the building at the specified position.
+&nbsp;     *
+&nbsp;     * @param row The row position.
+&nbsp;     * @param col The column position.
+&nbsp;     * @return The building at the position, or null if there is no building.
+&nbsp;     */
+&nbsp;    public Building getBuildingAt(int row, int col) {
+<b class="fc">&nbsp;        for (Building building : buildings) {</b>
+<b class="fc">&nbsp;            if (isBuildingAt(building, row, col)) {</b>
+<b class="fc">&nbsp;                return building;</b>
+&nbsp;            }
+<b class="fc">&nbsp;        }</b>
+<b class="fc">&nbsp;        return null;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-01-11 15:10</div>
+</div>
+</body>
+</html>

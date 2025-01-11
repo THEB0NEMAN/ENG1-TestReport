@@ -1,0 +1,178 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=windows-1252"> 
+  <title>Coverage Report > FireEvent</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.badlogic.UniSim2.core.events</a>
+</div>
+
+<h1>Coverage Summary for Class: FireEvent (com.badlogic.UniSim2.core.events)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">FireEvent</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (4/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    78.9%
+  </span>
+  <span class="absValue">
+    (15/19)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.badlogic.UniSim2.core.events;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Random;
+&nbsp;
+&nbsp;import com.badlogic.UniSim2.core.Round;
+&nbsp;import com.badlogic.UniSim2.core.buildings.Building;
+&nbsp;import com.badlogic.UniSim2.core.buildings.BuildingRemovalException;
+&nbsp;import com.badlogic.UniSim2.resources.Consts;
+&nbsp;
+&nbsp;/**
+&nbsp; * Represents a fire event in the game where a building is destroyed by fire.
+&nbsp; */
+&nbsp;public class FireEvent extends Event {
+&nbsp;
+&nbsp;    private Building destroyedBuilding;
+&nbsp;
+&nbsp;    public FireEvent(Round round) {
+<b class="fc">&nbsp;        super(</b>
+&nbsp;                &quot;There&#39;s Been A Fire!&quot;,
+&nbsp;                &quot;One of your buildings has burnt down! Replace it within 30 seconds to avoid losing score.&quot;,
+<b class="fc">&nbsp;                (int) (Consts.MAX_TIME * Math.random()),</b>
+&nbsp;                round
+&nbsp;        );
+<b class="fc">&nbsp;        this.destroyedBuilding = null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Handles the triggering of the fire event. Randomly selects a building to
+&nbsp;     * be destroyed by fire.
+&nbsp;     */
+&nbsp;    @Override
+&nbsp;    protected void handleTrigger() {
+<b class="fc">&nbsp;        Random rand = new Random();</b>
+<b class="fc">&nbsp;        List&lt;Building&gt; buildings = round.getPlacedBuildings();</b>
+<b class="fc">&nbsp;        if (!buildings.isEmpty()) {</b>
+<b class="fc">&nbsp;            destroyedBuilding = buildings.get(rand.nextInt(buildings.size()));</b>
+&nbsp;            try {
+<b class="fc">&nbsp;                round.removeBuilding(destroyedBuilding.getRow(), destroyedBuilding.getCol());</b>
+<b class="fc">&nbsp;                waitForResponse(30);</b>
+<b class="nc">&nbsp;            } catch (BuildingRemovalException e) {</b>
+&nbsp;                // Handling not needed.
+<b class="fc">&nbsp;            }</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Handles the response to the fire event. If the destroyed building is not
+&nbsp;     * replaced within the response time, the satisfaction is reduced by 100.
+&nbsp;     */
+&nbsp;    @Override
+&nbsp;    protected void handleResponse() {
+<b class="fc">&nbsp;        if (!getIsBuildingReplaced()) {</b>
+<b class="fc">&nbsp;            round.addToSatisfactionAddend(-100);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Checks if the destroyed building has been replaced.
+&nbsp;     *
+&nbsp;     * @return True if the building has been replaced, false otherwise.
+&nbsp;     */
+&nbsp;    private boolean getIsBuildingReplaced() {
+<b class="fc">&nbsp;        Building replacementBuilding = round.getBuildingAt(destroyedBuilding.getRow(), destroyedBuilding.getCol());</b>
+&nbsp;
+<b class="fc">&nbsp;        if (replacementBuilding == null) {</b>
+<b class="fc">&nbsp;            return false;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        boolean samePosition = replacementBuilding.getRow() == destroyedBuilding.getRow() &amp;&amp; replacementBuilding.getCol() == destroyedBuilding.getCol();</b>
+<b class="nc">&nbsp;        boolean sameType = replacementBuilding.getType() == destroyedBuilding.getType();</b>
+<b class="nc">&nbsp;        return samePosition &amp;&amp; sameType;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-01-11 15:10</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,491 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=windows-1252"> 
+  <title>Coverage Report > Round</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.badlogic.UniSim2.core</a>
+</div>
+
+<h1>Coverage Summary for Class: Round (com.badlogic.UniSim2.core)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">Round</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    56.2%
+  </span>
+  <span class="absValue">
+    (18/32)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    70.3%
+  </span>
+  <span class="absValue">
+    (90/128)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.badlogic.UniSim2.core;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.Arrays;
+&nbsp;import java.util.HashSet;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Set;
+&nbsp;
+&nbsp;import com.badlogic.UniSim2.core.achievements.AcademicArchitect;
+&nbsp;import com.badlogic.UniSim2.core.achievements.Achievement;
+&nbsp;import com.badlogic.UniSim2.core.achievements.FirstBuilding;
+&nbsp;import com.badlogic.UniSim2.core.achievements.GreenCampus;
+&nbsp;import com.badlogic.UniSim2.core.buildings.Building;
+&nbsp;import com.badlogic.UniSim2.core.buildings.BuildingPlacementException;
+&nbsp;import com.badlogic.UniSim2.core.buildings.BuildingRemovalException;
+&nbsp;import com.badlogic.UniSim2.core.buildings.BuildingType;
+&nbsp;import com.badlogic.UniSim2.core.events.Event;
+&nbsp;import com.badlogic.UniSim2.core.events.FireEvent;
+&nbsp;import com.badlogic.UniSim2.core.events.GrantEvent;
+&nbsp;import com.badlogic.UniSim2.core.events.RoyalEvent;
+&nbsp;import com.badlogic.UniSim2.resources.Consts;
+&nbsp;
+&nbsp;/**
+&nbsp; * Represents a single round of the game and manages the state of the grid,
+&nbsp; * buildings, events, achievements, and currency.
+&nbsp; */
+&nbsp;public class Round {
+&nbsp;
+<b class="fc">&nbsp;    private final Set&lt;Achievement&gt; ALL_ACHIEVEMENTS = new HashSet&lt;&gt;(Arrays.asList(</b>
+<b class="fc">&nbsp;            FirstBuilding.getInstance(),</b>
+<b class="fc">&nbsp;            AcademicArchitect.getInstance(),</b>
+<b class="fc">&nbsp;            GreenCampus.getInstance()</b>
+&nbsp;    ));
+&nbsp;
+&nbsp;    private final Grid grid;
+&nbsp;    private float elapsedTime;
+&nbsp;    private boolean isPaused;
+&nbsp;    private BuildingType selectedBuildingType;
+&nbsp;    private Building movingBuilding;
+&nbsp;    private int funds;
+&nbsp;    private float timeSinceLastPay;
+&nbsp;    private final Set&lt;Achievement&gt; completedAchievements;
+&nbsp;    private final Set&lt;Event&gt; events;
+&nbsp;    private final Set&lt;Event&gt; triggeredEvents;
+&nbsp;    private int satisfactionAddend;
+&nbsp;
+<b class="fc">&nbsp;    public Round() {</b>
+<b class="fc">&nbsp;        this.grid = new Grid(38, 66);</b>
+<b class="fc">&nbsp;        this.elapsedTime = 0;</b>
+<b class="fc">&nbsp;        this.isPaused = false;</b>
+<b class="fc">&nbsp;        this.selectedBuildingType = null;</b>
+<b class="fc">&nbsp;        this.funds = 1000 * 1000;</b>
+<b class="fc">&nbsp;        this.timeSinceLastPay = 0;</b>
+<b class="fc">&nbsp;        this.completedAchievements = new HashSet&lt;&gt;();</b>
+<b class="fc">&nbsp;        this.events = new HashSet&lt;&gt;(Arrays.asList(</b>
+&nbsp;                new RoyalEvent(this),
+&nbsp;                new GrantEvent(this),
+&nbsp;                new FireEvent(this)
+&nbsp;        ));
+<b class="fc">&nbsp;        this.triggeredEvents = new HashSet&lt;&gt;();</b>
+&nbsp;
+&nbsp;        // Initialize paths on the grid
+<b class="fc">&nbsp;        grid.placePath(38, 0, 2, 38);</b>
+<b class="fc">&nbsp;        grid.placePath(38, 17, 2, 38);</b>
+<b class="fc">&nbsp;        grid.placePath(38, 51, 2, 38);</b>
+<b class="fc">&nbsp;        grid.placePath(38, 37, 2, 28);</b>
+&nbsp;
+<b class="fc">&nbsp;        grid.placePath(12, 0, 66, 2);</b>
+<b class="fc">&nbsp;        grid.placePath(24, 0, 66, 2);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Updates the state of the round.
+&nbsp;     *
+&nbsp;     * @param delta The time elapsed since the last update.
+&nbsp;     */
+&nbsp;    public void update(float delta) {
+<b class="fc">&nbsp;        if (isPaused || elapsedTime &gt;= Consts.MAX_TIME) {</b>
+&nbsp;            return;
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        elapsedTime += delta;</b>
+&nbsp;
+<b class="fc">&nbsp;        if (timeSinceLastPay &gt;= 5) {</b>
+<b class="fc">&nbsp;            funds += 100 * 1000;</b>
+<b class="fc">&nbsp;            timeSinceLastPay = 0;</b>
+&nbsp;        } else {
+<b class="fc">&nbsp;            timeSinceLastPay += delta;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // Check for completed achievements
+<b class="fc">&nbsp;        for (Achievement achievement : ALL_ACHIEVEMENTS) {</b>
+<b class="fc">&nbsp;            if (!completedAchievements.contains(achievement) &amp;&amp; achievement.getCompleted(this)) {</b>
+<b class="fc">&nbsp;                completedAchievements.add(achievement);</b>
+&nbsp;            }
+<b class="fc">&nbsp;        }</b>
+&nbsp;
+&nbsp;        // Update and attempt to trigger events
+<b class="fc">&nbsp;        for (Event event : events) {</b>
+<b class="fc">&nbsp;            event.update(delta);</b>
+&nbsp;
+<b class="fc">&nbsp;            boolean triggered = event.attemptTrigger();</b>
+<b class="fc">&nbsp;            if (triggered) {</b>
+<b class="fc">&nbsp;                triggeredEvents.add(event);</b>
+&nbsp;            }
+<b class="fc">&nbsp;        }</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void addToSatisfactionAddend(int addend) {
+<b class="fc">&nbsp;        satisfactionAddend += addend;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public Set&lt;Event&gt; getTriggeredEvents() {
+<b class="nc">&nbsp;        return triggeredEvents;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Calculates and returns the student satisfaction score. The satisfaction
+&nbsp;     * score is calculated based on the buildings placed on the grid, the
+&nbsp;     * diversity of building types, and previous responses to events.
+&nbsp;     *
+&nbsp;     * @return The student satisfaction score.
+&nbsp;     */
+&nbsp;    public int getStudentSatisfaction() {
+<b class="fc">&nbsp;        return ((int) (getStudentSatisfactionFromBuildings() * getDiversityFactor())) + satisfactionAddend;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Calculates the student satisfaction score based on the buildings on the
+&nbsp;     * grid.
+&nbsp;     *
+&nbsp;     * @return The student satisfaction score from buildings.
+&nbsp;     */
+&nbsp;    private int getStudentSatisfactionFromBuildings() {
+<b class="fc">&nbsp;        int s = 0;</b>
+&nbsp;
+&nbsp;        // each lecture hall adds 100
+<b class="fc">&nbsp;        int numberOfLectureHalls = grid.getBuildingCount(BuildingType.LECTUREHALL);</b>
+<b class="fc">&nbsp;        s += numberOfLectureHalls * 100;</b>
+&nbsp;
+&nbsp;        // each accommodation adds 40
+<b class="fc">&nbsp;        int numberOfAccommodations = grid.getBuildingCount(BuildingType.ACCOMMODATION);</b>
+<b class="fc">&nbsp;        s += numberOfAccommodations * 40;</b>
+&nbsp;
+&nbsp;        // each bar adds 60
+<b class="fc">&nbsp;        int numberOfBars = grid.getBuildingCount(BuildingType.BAR);</b>
+<b class="fc">&nbsp;        s += numberOfBars * 60;</b>
+&nbsp;
+&nbsp;        // each nature adds 10
+<b class="fc">&nbsp;        int numberOfNatures = grid.getBuildingCount(BuildingType.NATURE);</b>
+<b class="fc">&nbsp;        s += numberOfNatures * 10;</b>
+&nbsp;
+&nbsp;        // each food zone adds 50
+<b class="fc">&nbsp;        int numberOfFoodZones = grid.getBuildingCount(BuildingType.FOODZONE);</b>
+<b class="fc">&nbsp;        s += numberOfFoodZones * 50;</b>
+&nbsp;
+&nbsp;        // considering the distance between buildings
+<b class="fc">&nbsp;        for (Building bA : grid.getPlacedBuildings()) {</b>
+<b class="fc">&nbsp;            for (Building bB : grid.getPlacedBuildings()) {</b>
+&nbsp;
+&nbsp;                // each bar within 5 tiles of an accommodation removes 100
+<b class="fc">&nbsp;                if (bA.getType() == BuildingType.BAR &amp;&amp; bB.getType() == BuildingType.ACCOMMODATION) {</b>
+<b class="nc">&nbsp;                    if (grid.getBuildingsAreWithinRadius(bA, bB, 5)) {</b>
+<b class="nc">&nbsp;                        s -= 100;</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;
+&nbsp;                // each bar within 4 tiles of a lecture hall adds 60
+<b class="fc">&nbsp;                if (bA.getType() == BuildingType.BAR &amp;&amp; bB.getType() == BuildingType.LECTUREHALL) {</b>
+<b class="nc">&nbsp;                    if (grid.getBuildingsAreWithinRadius(bA, bB, 4)) {</b>
+<b class="nc">&nbsp;                        s += 60;</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;
+&nbsp;                // each nature adjacent to an accommodation adds 30
+<b class="fc">&nbsp;                if (bA.getType() == BuildingType.NATURE &amp;&amp; bB.getType() == BuildingType.ACCOMMODATION) {</b>
+<b class="nc">&nbsp;                    if (grid.getBuildingsAreWithinRadius(bA, bB, 1)) {</b>
+<b class="nc">&nbsp;                        s += 30;</b>
+&nbsp;                    }
+&nbsp;                }
+<b class="fc">&nbsp;            }</b>
+<b class="fc">&nbsp;        }</b>
+&nbsp;
+<b class="fc">&nbsp;        return s;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Calculates the diversity factor based on the distribution of building
+&nbsp;     * types.
+&nbsp;     *
+&nbsp;     * @return The diversity factor.
+&nbsp;     */
+&nbsp;    private double getDiversityFactor() {
+<b class="fc">&nbsp;        List&lt;Integer&gt; buildingCounts = new ArrayList&lt;&gt;();</b>
+<b class="fc">&nbsp;        for (BuildingType type : BuildingType.values()) {</b>
+<b class="fc">&nbsp;            buildingCounts.add(grid.getBuildingCount(type));</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        float mean = grid.getPlacedBuildings().size() / BuildingType.values().length;</b>
+<b class="fc">&nbsp;        double variance = 0.0;</b>
+<b class="fc">&nbsp;        for (int count : buildingCounts) {</b>
+<b class="fc">&nbsp;            variance += Math.pow(count - mean, 2);</b>
+<b class="fc">&nbsp;        }</b>
+<b class="fc">&nbsp;        variance /= BuildingType.values().length;</b>
+<b class="fc">&nbsp;        double maxVariance = Math.pow(grid.getPlacedBuildings().size() - mean, 2);</b>
+<b class="fc">&nbsp;        double normalisedVariance = 1.0 - (variance / maxVariance);</b>
+<b class="fc">&nbsp;        normalisedVariance = Math.max(0, normalisedVariance);</b>
+<b class="fc">&nbsp;        return normalisedVariance;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public List&lt;Building&gt; getPlacedBuildings() {
+<b class="fc">&nbsp;        return grid.getPlacedBuildings();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Places a building on the grid.
+&nbsp;     *
+&nbsp;     * @param type The type of building to place.
+&nbsp;     * @param row The row position to place the building.
+&nbsp;     * @param col The column position to place the building.
+&nbsp;     * @throws BuildingPlacementException If the building cannot be placed.
+&nbsp;     */
+&nbsp;    public void placeBuilding(BuildingType type, int row, int col) throws BuildingPlacementException {
+<b class="fc">&nbsp;        int buildingCost = type.create(0, 0).getCost();</b>
+<b class="fc">&nbsp;        if (funds &lt; buildingCost) {</b>
+<b class="nc">&nbsp;            throw new BuildingPlacementException(&quot;Not enough funds to place building&quot;);</b>
+&nbsp;        }
+<b class="fc">&nbsp;        funds -= buildingCost;</b>
+<b class="fc">&nbsp;        grid.placeBuilding(type, row, col);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Removes a building from the grid.
+&nbsp;     *
+&nbsp;     * @param row The row position of the building to remove.
+&nbsp;     * @param col The column position of the building to remove.
+&nbsp;     * @return The removed building.
+&nbsp;     * @throws BuildingRemovalException If the building cannot be removed.
+&nbsp;     */
+&nbsp;    public Building removeBuilding(int row, int col) throws BuildingRemovalException {
+<b class="fc">&nbsp;        Building building = grid.getBuildingAt(row, col);</b>
+<b class="fc">&nbsp;        if (building == null) {</b>
+<b class="nc">&nbsp;            throw new BuildingRemovalException(&quot;There is no building at row &quot; + row + &quot; col &quot; + col);</b>
+&nbsp;        }
+<b class="fc">&nbsp;        int demolishCost = building.getDemolishCost();</b>
+<b class="fc">&nbsp;        if (funds &lt; demolishCost) {</b>
+<b class="nc">&nbsp;            throw new BuildingRemovalException(&quot;Not enough funds to remove building&quot;);</b>
+&nbsp;        }
+<b class="fc">&nbsp;        funds -= demolishCost;</b>
+<b class="fc">&nbsp;        return grid.removeBuilding(row, col);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Selects a building to move.
+&nbsp;     *
+&nbsp;     * @param row The row position of the building to move.
+&nbsp;     * @param col The column position of the building to move.
+&nbsp;     */
+&nbsp;    public void selectBuildingToMove(int row, int col) {
+<b class="nc">&nbsp;        if (movingBuilding != null) {</b>
+&nbsp;            return;
+&nbsp;        }
+&nbsp;
+&nbsp;        try {
+<b class="nc">&nbsp;            Building building = grid.getBuildingAt(row, col);</b>
+<b class="nc">&nbsp;            movingBuilding = building;</b>
+&nbsp;
+<b class="nc">&nbsp;            grid.removeBuilding(row, col);</b>
+<b class="nc">&nbsp;        } catch (BuildingRemovalException e) {</b>
+&nbsp;            // No handling needed.
+<b class="nc">&nbsp;        }</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Cancels the moving of a building.
+&nbsp;     */
+&nbsp;    public void cancelMoveBuilding() {
+<b class="nc">&nbsp;        if (movingBuilding == null) {</b>
+&nbsp;            return;
+&nbsp;        }
+&nbsp;
+&nbsp;        try {
+<b class="nc">&nbsp;            grid.placeBuilding(movingBuilding.getType(), movingBuilding.getRow(), movingBuilding.getCol());</b>
+<b class="nc">&nbsp;            movingBuilding = null;</b>
+<b class="nc">&nbsp;        } catch (BuildingPlacementException e) {</b>
+&nbsp;            // No handling needed.
+<b class="nc">&nbsp;        }</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public boolean getIsMovingBuilding() {
+<b class="nc">&nbsp;        return movingBuilding != null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public Building getMovingBuilding() {
+<b class="nc">&nbsp;        return movingBuilding;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Moves a building to a new position.
+&nbsp;     *
+&nbsp;     * @param row The new row position.
+&nbsp;     * @param col The new column position.
+&nbsp;     * @throws BuildingPlacementException If the building cannot be moved.
+&nbsp;     */
+&nbsp;    public void moveBuilding(int row, int col) throws BuildingPlacementException {
+<b class="nc">&nbsp;        if (movingBuilding == null) {</b>
+&nbsp;            return;
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        int moveCost = movingBuilding.getMoveCost();</b>
+<b class="nc">&nbsp;        if (funds &lt; moveCost) {</b>
+<b class="nc">&nbsp;            throw new BuildingPlacementException(&quot;Not enough funds to move building&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        funds -= moveCost;</b>
+<b class="nc">&nbsp;        grid.moveBuilding(movingBuilding, row, col);</b>
+<b class="nc">&nbsp;        movingBuilding = null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public boolean getIsBuildingAt(int row, int col) {
+<b class="nc">&nbsp;        return grid.getIsBuildingAt(row, col);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public Building getBuildingAt(int row, int col) {
+<b class="fc">&nbsp;        return grid.getBuildingAt(row, col);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public boolean getCanPlace(BuildingType type, int row, int col) {
+<b class="nc">&nbsp;        return grid.getCanPlace(type, row, col);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public boolean getCanAfford(BuildingType type) {
+<b class="nc">&nbsp;        return funds &gt;= type.create(0, 0).getCost();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void addToFunds(int amount) {
+<b class="fc">&nbsp;        funds += amount;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public int getBuildingCount(BuildingType type) {
+<b class="fc">&nbsp;        return grid.getBuildingCount(type);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void selectBuildingType(BuildingType type) {
+<b class="nc">&nbsp;        this.selectedBuildingType = type;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public BuildingType getSelectedBuildingType() {
+<b class="nc">&nbsp;        return selectedBuildingType;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public float getElapsedTime() {
+<b class="fc">&nbsp;        return elapsedTime;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void togglePause() {
+<b class="fc">&nbsp;        isPaused = !isPaused;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public boolean isPaused() {
+<b class="nc">&nbsp;        return isPaused;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public boolean isOver() {
+<b class="nc">&nbsp;        return elapsedTime &gt;= Consts.MAX_TIME;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public int getFunds() {
+<b class="fc">&nbsp;        return funds;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public Set&lt;Achievement&gt; getCompletedAchievements() {
+<b class="fc">&nbsp;        return completedAchievements;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public Set&lt;Achievement&gt; getAllAchievements() {
+<b class="nc">&nbsp;        return ALL_ACHIEVEMENTS;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public Set&lt;Event&gt; getEvents() {
+<b class="fc">&nbsp;        return events;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public Grid getGrid() {
+<b class="fc">&nbsp;        return grid;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-01-11 15:10</div>
+</div>
+</body>
+</html>

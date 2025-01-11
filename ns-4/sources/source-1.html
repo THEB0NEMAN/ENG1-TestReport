@@ -1,0 +1,201 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=windows-1252"> 
+  <title>Coverage Report > Event</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.badlogic.UniSim2.core.events</a>
+</div>
+
+<h1>Coverage Summary for Class: Event (com.badlogic.UniSim2.core.events)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">Event</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (7/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (25/25)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.badlogic.UniSim2.core.events;
+&nbsp;
+&nbsp;import com.badlogic.UniSim2.core.Round;
+&nbsp;
+&nbsp;/**
+&nbsp; * Represents an abstract event in the game. Subclasses should implement the
+&nbsp; * handleTrigger and handleResponse methods.
+&nbsp; */
+&nbsp;public abstract class Event {
+&nbsp;
+&nbsp;    private final String name;
+&nbsp;    private final String description;
+&nbsp;    private final int triggerTime;
+<b class="fc">&nbsp;    private boolean triggered = false;</b>
+&nbsp;    protected final Round round;
+&nbsp;    protected float elapsedTime;
+&nbsp;    private float timer;
+&nbsp;
+<b class="fc">&nbsp;    public Event(String name, String description, int triggerTime, Round round) {</b>
+<b class="fc">&nbsp;        this.name = name;</b>
+<b class="fc">&nbsp;        this.description = description;</b>
+<b class="fc">&nbsp;        this.triggerTime = triggerTime;</b>
+<b class="fc">&nbsp;        this.round = round;</b>
+<b class="fc">&nbsp;        this.elapsedTime = -1;</b>
+<b class="fc">&nbsp;        this.timer = -1;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Updates the event&#39;s state.
+&nbsp;     *
+&nbsp;     * @param delta The time elapsed since the last update.
+&nbsp;     */
+&nbsp;    public void update(float delta) {
+<b class="fc">&nbsp;        this.elapsedTime += delta;</b>
+&nbsp;
+<b class="fc">&nbsp;        if (timer &gt; 0) {</b>
+<b class="fc">&nbsp;            timer -= delta;</b>
+<b class="fc">&nbsp;            if (timer &lt;= 0) {</b>
+<b class="fc">&nbsp;                timer = -1;</b>
+<b class="fc">&nbsp;                handleResponse();</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Attempts to trigger the event.
+&nbsp;     *
+&nbsp;     * @return True if the event was triggered, false otherwise.
+&nbsp;     */
+&nbsp;    public boolean attemptTrigger() {
+<b class="fc">&nbsp;        if (triggered) {</b>
+<b class="fc">&nbsp;            return false;</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        if (elapsedTime &lt; triggerTime) {</b>
+<b class="fc">&nbsp;            return false;</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        handleTrigger();</b>
+<b class="fc">&nbsp;        triggered = true;</b>
+<b class="fc">&nbsp;        return true;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Waits for a response for a specified amount of time. When the time is
+&nbsp;     * over, the handleResponse method is called.
+&nbsp;     *
+&nbsp;     * @param timer The time to wait for a response.
+&nbsp;     */
+&nbsp;    protected void waitForResponse(float timer) {
+<b class="fc">&nbsp;        this.timer = timer;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Handles the triggering of the event. Subclasses should implement this
+&nbsp;     * method to define the event&#39;s behavior when triggered.
+&nbsp;     */
+&nbsp;    protected abstract void handleTrigger();
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Handles the response to the event. Subclasses should implement this
+&nbsp;     * method to define the event&#39;s behavior when the response time elapses.
+&nbsp;     */
+&nbsp;    protected abstract void handleResponse();
+&nbsp;
+&nbsp;    public String getName() {
+<b class="fc">&nbsp;        return name;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String getDescription() {
+<b class="fc">&nbsp;        return description;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public int getTriggerTime() {
+<b class="fc">&nbsp;        return triggerTime;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-01-11 15:10</div>
+</div>
+</body>
+</html>
